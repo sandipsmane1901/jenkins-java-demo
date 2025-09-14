@@ -22,7 +22,7 @@ pipeline {
 
             // Extract error/warning lines
             def errorLog = buildLog.readLines().findAll { line ->
-                line =~ /(ERROR|FAILURE|Exception|Caused by|Build step failed)/
+                line =~ /(error|ERROR|FAILURE|Exception|Caused by|Build step failed)/
             }.join("\n")
 
             // If no error lines found, fallback to full log
