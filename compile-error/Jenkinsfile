@@ -1,0 +1,58 @@
+pipeline {
+  agent any
+  stages {
+    stage('Checkout') {
+      steps {
+        echo "Files in workspace:"
+        sh 'ls -la'
+      }
+    }
+    stage('Compile') {
+      steps {
+        echo 'Compiling Demo.java (expected to fail)...'
+        bat 'javac Demo.java'
+      }
+    }
+  }
+ post {
+    always {
+        script {
+            def buildStatus = currentBuild.currentResult
+            def buildLog = currentBuild.rawBuild.getLog(1000).join("\n")
+
+            // Extract error/warning lines
+            def errorLog = buildLog.readLines().findAll { line ->
+                line =~ /(ERROR|FAILURE|Exception|Caused by|Build step failed)/
+            }.join("\n")
+
+            // If no error lines found, fallback to full log
+            if (errorLog.trim().isEmpty()) {
+                errorLog = buildLog
+            }
+
+            // Save raw logs
+            writeFile file: "raw.log", text: errorLog
+
+            // Use Jenkins powershell step (not bat!)
+            powershell '''
+              $b64 = [Convert]::ToBase64String([IO.File]::ReadAllBytes("raw.log"))
+              $b64 | Out-File -FilePath "encoded_clean.log" -Encoding ascii
+            '''
+
+            // Read encoded logs back into Groovy
+            def encodedLogs = readFile("encoded_clean.log").trim()
+
+            // Build JSON payload
+            def payload = """{
+                "buildNumber": "${env.BUILD_NUMBER}",
+                "status": "${buildStatus}",
+                "logs": "${encodedLogs}"
+            }"""
+
+            writeFile file: "payload.json", text: payload
+
+            // Send JSON to Flask API
+            bat 'curl -X POST -H "Content-Type: application/json" -d @payload.json http://127.0.0.1:5000/logs'
+        }
+    }
+}
