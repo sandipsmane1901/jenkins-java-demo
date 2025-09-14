@@ -6,7 +6,9 @@ pipeline {
   stages {
     stage('Build & Test') {
       steps {
-        bat 'mvn -B -DskipTests=false clean test'
+        dir('junit-failure') {
+            bat 'mvn -B clean test'
+        }
       }
     }
   }
