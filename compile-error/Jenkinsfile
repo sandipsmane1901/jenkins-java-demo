@@ -10,7 +10,7 @@ pipeline {
     stage('Compile') {
       steps {
         echo 'Compiling Demo.java (expected to fail)...'
-        bat 'javac Demo.java'
+        bat 'javac compile-error\\Demo.java'
       }
     }
   }
