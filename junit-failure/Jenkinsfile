@@ -16,7 +16,7 @@ pipeline {
     always {
         script {
             def buildStatus = currentBuild.currentResult
-            def buildLog = currentBuild.rawBuild.getLog(1000).join("\n")
+            def buildLog = currentBuild.rawBuild.getLog(2000).join("\n")
 
             // Extract error/warning lines
             def errorLog = buildLog.readLines().findAll { line ->
