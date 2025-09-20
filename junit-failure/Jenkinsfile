@@ -45,6 +45,8 @@ pipeline {
                 "buildNumber": "${env.BUILD_NUMBER}",
                 "status": "${buildStatus}",
                 "logs": "${encodedLogs}"
+                "jobName": "${env.JOB_NAME}", 
+                "jobUrl": "${env.BUILD_URL}"
             }"""
 
             writeFile file: "payload.json", text: payload
